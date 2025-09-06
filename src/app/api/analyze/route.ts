@@ -99,12 +99,27 @@ export async function POST(req: NextRequest) {
       3.  **Berikan Saran Cerdas**: Buat properti bernama "saran_ai". Jika ada nilai yang 'null', berikan saran yang paling logis berdasarkan konteks. Jika tidak ada konteks untuk memberikan saran, berikan string kosong.
       4.  **Format Output**: Kembalikan hasilnya HANYA dalam format JSON tunggal yang valid tanpa teks tambahan.
 
+       --- ATURAN PENTING UNTUK 'saran_ai' ---
+      Setelah mengekstrak semua data, Anda HARUS membuat properti "saran_ai". Properti ini memiliki DUA tujuan:
+
+      1.  **REKOMENDASI NILAI KOSONG**:
+          - Untuk setiap field yang nilainya 'null', berikan rekomendasi pengisian yang logis.
+          - Gunakan format: "- [Nama Kolom]: Rekomendasi Anda."
+          - Contoh: "- Masa Retensi: Tidak ditemukan, sarankan untuk diisi 'Sesuai Kebijakan Perusahaan'."
+
+      2.  **VALIDASI DATA TIDAK COCOK**:
+          - Periksa setiap data yang berhasil diekstrak. Apakah nilainya masuk akal untuk kolom tersebut berdasarkan definisinya?
+          - Jika Anda menemukan kejanggalan (misalnya, nama orang di kolom 'Unit Kerja', atau tujuan proses di kolom 'Nama Aktivitas'), laporkan.
+          - Gunakan format: "- Validasi [Nama Kolom]: Nilai '[Nilai yang Ditemukan]' terlihat tidak cocok karena [alasan Anda]."
+          - Contoh: "- Validasi Unit Kerja: Nilai 'Budi Santoso' terlihat tidak cocok karena ini adalah nama orang, bukan nama divisi."
+
+
       --- CONTOH OUTPUT JSON YANG DIHARAPKAN ---
       {
         "no_aktivitas": "HR/REC/2025/001",
         "nama_aktivitas": "Proses Rekrutmen Karyawan Baru",
         "unit_kerja": "Divisi Sumber Daya Manusia",
-        "departemen": "Talent Acquisition",
+        "departemen": "Budi Santoso",
         "penanggung_jawab": "Manajer Rekrutmen",
         "kedudukan_pemilik_proses": "Pengendali",
         "tujuan_pemrosesan": "Untuk kebutuhan proses rekrutmen karyawan, mulai dari seleksi awal, wawancara, hingga penawaran kerja.",
@@ -126,7 +141,7 @@ export async function POST(req: NextRequest) {
         "proses_sebelumnya": "Publikasi lowongan pekerjaan.",
         "proses_setelahnya": "Onboarding karyawan baru.",
         "keterangan_tambahan": "Proses ini mencakup pemeriksaan latar belakang oleh pihak ketiga.",
-        "saran_ai": "Saran: Masa Retensi Data dan detail Asesmen Risiko tidak disebutkan. Ini harus diklarifikasi sesuai kebijakan perusahaan."
+        "saran_ai": "REKOMENDASI & VALIDASI:\n- Masa Retensi: Tidak ditemukan, sarankan untuk diisi '1 Tahun untuk kandidat gagal' sesuai praktik umum.\n- Validasi Departemen: Nilai 'Budi Santoso' terlihat tidak cocok karena ini adalah nama orang, bukan nama departemen."
       }
     `;
 

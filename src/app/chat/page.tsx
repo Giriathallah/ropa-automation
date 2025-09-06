@@ -3,66 +3,81 @@
 import { useState, useRef, FormEvent, ChangeEvent, DragEvent } from "react";
 import * as XLSX from "xlsx";
 
-// Interface RopaData updated to match API output
+// Interface and helper function section (no changes needed here)
+interface RopaCell {
+  value: string | null;
+  source: "initial" | "manual" | "ai"; // 'initial' (dari AI), 'manual', 'ai' (dari chat)
+}
 interface RopaData {
-  no_aktivitas: string | null;
-  nama_aktivitas: string | null;
-  unit_kerja: string | null;
-  departemen: string | null;
-  penanggung_jawab: string | null;
-  kedudukan_pemilik_proses: string | null;
-  deskripsi_dan_tujuan_pemrosesan?: string | null;
-  deskripsi_tujuan_pemrosesan?: string | null;
-  kebijakan_rujukan?: string | null;
-  kebijakan_sop_ik_dokumen_rujukan?: string | null;
-  bentuk_data_pribadi: string | null;
-  subjek_data_pribadi: string | null;
-  jenis_data_pribadi: string | null;
-  data_pribadi_spesifik: "Ya" | "Tidak" | null;
-  sumber_pemerolehan_data_pribadi?: string | null;
-  sumber_data?: string | null;
-  akurasi_dan_kelengkapan_data_pribadi?: string | null;
-  akurasi_kelengkapan_data_pribadi?: string | null;
-  penyimpanan_data_pribadi?: string | null;
-  penyimpanan_data?: string | null;
-  metode_pemrosesan_data_pribadi?: string | null;
-  metode_pemrosesan?: string | null;
-  pengambilan_keputusan_terotomasi?: string | null;
-  dasar_pemrosesan: string | null;
-  masa_retensi_data_pribadi?: string | null;
-  masa_retensi?: string | null;
-  kewajiban_hukum_untuk_menyimpan_data_pribadi?: string | null;
-  kewajiban_hukum_retensi?: string | null;
-  langkah_teknis_pengamanan_data_pribadi?: string | null;
-  langkah_teknis_pengamanan?: string | null;
-  langkah_organisasi_pengamanan_data_pribadi?: string | null;
-  langkah_organisasi_pengamanan?: string | null;
-  kategori_dan_jenis_penerima_data_pribadi?: string | null;
-  kategori_penerima?: string | null;
-  profil_penerima_data_pribadi?: string | null;
-  profil_penerima?: string | null;
-  tujuan_pengiriman_akses_data_pribadi?: string | null;
-  mekanisme_transfer_akses?: string | null;
-  hak_subjek_data_pribadi_yang_berlaku?: string | null;
-  hak_subjek_data_pribadi?: string | null;
-  asesmen_risiko: string | null;
-  proses_kegiatan_sebelumnya?: string | null;
-  proses_sebelumnya?: string | null;
-  proses_kegiatan_setelahnya?: string | null;
-  proses_setelahnya?: string | null;
-  keterangan_catatan_tambahan?: string | null;
-  keterangan_tambahan?: string | null;
+  no_aktivitas: RopaCell;
+  nama_aktivitas: RopaCell;
+  unit_kerja: RopaCell;
+  departemen: RopaCell;
+  penanggung_jawab: RopaCell;
+  kedudukan_pemilik_proses: RopaCell;
+  tujuan_pemrosesan: RopaCell;
+  kebijakan_rujukan: RopaCell;
+  bentuk_data_pribadi: RopaCell;
+  subjek_data_pribadi: RopaCell;
+  jenis_data_pribadi: RopaCell;
+  data_pribadi_spesifik: RopaCell;
+  sumber_data: RopaCell;
+  penyimpanan_data: RopaCell;
+  metode_pemrosesan: RopaCell;
+  dasar_pemrosesan: RopaCell;
+  masa_retensi: RopaCell;
+  langkah_teknis_pengamanan: RopaCell;
+  langkah_organisasi_pengamanan: RopaCell;
+  kategori_penerima: RopaCell;
+  profil_penerima: RopaCell;
+  asesmen_risiko: RopaCell;
+  proses_sebelumnya: RopaCell;
+  proses_setelahnya: RopaCell;
+  keterangan_tambahan: RopaCell;
   saran_ai: string;
 }
-
 interface ChatMessage {
   sender: "user" | "ai";
   text: string;
 }
-
 interface RopaResult extends RopaData {
   fileName: string;
 }
+const transformApiDataToState = (data: any): RopaData => {
+  const transformed: Partial<RopaData> = {};
+  const allKeys: (keyof Omit<RopaData, "saran_ai">)[] = [
+    "no_aktivitas",
+    "nama_aktivitas",
+    "unit_kerja",
+    "departemen",
+    "penanggung_jawab",
+    "kedudukan_pemilik_proses",
+    "tujuan_pemrosesan",
+    "kebijakan_rujukan",
+    "bentuk_data_pribadi",
+    "subjek_data_pribadi",
+    "jenis_data_pribadi",
+    "data_pribadi_spesifik",
+    "sumber_data",
+    "penyimpanan_data",
+    "metode_pemrosesan",
+    "dasar_pemrosesan",
+    "masa_retensi",
+    "langkah_teknis_pengamanan",
+    "langkah_organisasi_pengamanan",
+    "kategori_penerima",
+    "profil_penerima",
+    "asesmen_risiko",
+    "proses_sebelumnya",
+    "proses_setelahnya",
+    "keterangan_tambahan",
+  ];
+  allKeys.forEach((key) => {
+    transformed[key] = { value: data[key] || null, source: "initial" };
+  });
+  transformed.saran_ai = data.saran_ai || "";
+  return transformed as RopaData;
+};
 
 export default function RopaAnalyzerPage() {
   const [files, setFiles] = useState<File[]>([]);
@@ -73,6 +88,7 @@ export default function RopaAnalyzerPage() {
   const [chatInput, setChatInput] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
 
   const handleFiles = (selectedFiles: FileList | null) => {
     if (selectedFiles && selectedFiles.length > 0) {
@@ -80,22 +96,18 @@ export default function RopaAnalyzerPage() {
     }
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) =>
     handleFiles(e.target.files);
-  };
-
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
   };
-
   const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
   };
-
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -103,20 +115,7 @@ export default function RopaAnalyzerPage() {
     handleFiles(e.dataTransfer.files);
   };
 
-  // Helper function to get field value with fallback options
-  const getFieldValue = (
-    result: RopaData,
-    ...fieldNames: (keyof RopaData)[]
-  ) => {
-    for (const fieldName of fieldNames) {
-      const value = result[fieldName];
-      if (value !== null && value !== undefined) {
-        return value;
-      }
-    }
-    return null;
-  };
-
+  // handler analyze file
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (files.length === 0) {
@@ -126,40 +125,64 @@ export default function RopaAnalyzerPage() {
     setIsLoading(true);
     setError(null);
     setResults([]);
+    setIsEditMode(false);
 
-    try {
+    // This logic sends one API request PER file, and the API returns an array of results
+    const promises = files.map((file) => {
       const formData = new FormData();
-      files.forEach((file) => {
-        formData.append("datanya", file);
-      });
-
-      const response = await fetch("/api/analyze", {
+      formData.append("datanya", file);
+      return fetch("/api/analyze", {
         method: "POST",
         body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error || "Terjadi kesalahan tidak diketahui."
-        );
-      }
-
-      const data = await response.json();
-
-      // Map the results with file names
-      const mappedResults: RopaResult[] = data.map(
-        (result: RopaData, index: number) => ({
-          ...result,
-          fileName: files[index]?.name || `File ${index + 1}`,
+      })
+        .then((response) => {
+          if (!response.ok) {
+            return response
+              .json()
+              .then((err) =>
+                Promise.reject({ fileName: file.name, error: err.error })
+              );
+          }
+          return response.json();
         })
-      );
+        .then((dataArray) => {
+          // The API returns an array, even for one file, so we take the first element
+          const rawResult = dataArray[0];
+          return {
+            ...transformApiDataToState(rawResult), // ✅ PERBAIKAN DI SINI
+            fileName: file.name,
+          };
+        });
+    });
 
-      setResults(mappedResults);
+    try {
+      const allResults = await Promise.all(promises);
+      setResults(allResults);
     } catch (err: any) {
-      setError(`Gagal memproses file: ${err.message}`);
+      setError(
+        `Gagal memproses file "${err.fileName}": ${
+          err.error || "Terjadi kesalahan tidak diketahui."
+        }`
+      );
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // handler edit tabel manual
+  const handleManualEdit = (
+    resultIndex: number,
+    fieldName: keyof RopaData,
+    newValue: string
+  ) => {
+    const newResults = [...results];
+    if (fieldName in newResults[resultIndex]) {
+      const targetCell = newResults[resultIndex][fieldName] as RopaCell;
+      if (targetCell) {
+        targetCell.value = newValue;
+        targetCell.source = "manual";
+        setResults(newResults);
+      }
     }
   };
 
@@ -168,113 +191,37 @@ export default function RopaAnalyzerPage() {
 
     const dataToExport = results.map((result) => ({
       "File Asal": result.fileName,
-      "No Aktivitas": result.no_aktivitas || "N/A",
-      "Nama Aktivitas": result.nama_aktivitas || "N/A",
-      "Unit Kerja / Divisi": result.unit_kerja || "N/A",
-      "Departemen / Sub-Departemen": result.departemen || "N/A",
-      "Penanggung Jawab Proses": result.penanggung_jawab || "N/A",
-      "Kedudukan Pemilik Proses": result.kedudukan_pemilik_proses || "N/A",
-      "Deskripsi dan Tujuan Pemrosesan":
-        getFieldValue(
-          result,
-          "deskripsi_dan_tujuan_pemrosesan",
-          "deskripsi_tujuan_pemrosesan"
-        ) || "N/A",
+      "No Aktivitas": result.no_aktivitas.value || "N/A",
+      "Nama Aktivitas": result.nama_aktivitas.value || "N/A",
+      "Unit Kerja / Divisi": result.unit_kerja.value || "N/A",
+      "Departemen / Sub-Departemen": result.departemen.value || "N/A",
+      "Penanggung Jawab Proses": result.penanggung_jawab.value || "N/A",
+      "Kedudukan Pemilik Proses":
+        result.kedudukan_pemilik_proses.value || "N/A",
+      "Tujuan Pemrosesan": result.tujuan_pemrosesan.value || "N/A",
       "Kebijakan/SOP/IK/Dokumen Rujukan":
-        getFieldValue(
-          result,
-          "kebijakan_sop_ik_dokumen_rujukan",
-          "kebijakan_rujukan"
-        ) || "N/A",
-      "Bentuk Data Pribadi": result.bentuk_data_pribadi || "N/A",
-      "Subjek Data Pribadi": result.subjek_data_pribadi || "N/A",
-      "Jenis Data Pribadi": result.jenis_data_pribadi || "N/A",
-      "Data Pribadi Spesifik": result.data_pribadi_spesifik || "N/A",
-      "Sumber Pemerolehan Data Pribadi":
-        getFieldValue(
-          result,
-          "sumber_pemerolehan_data_pribadi",
-          "sumber_data"
-        ) || "N/A",
-      "Akurasi dan Kelengkapan Data Pribadi":
-        getFieldValue(
-          result,
-          "akurasi_dan_kelengkapan_data_pribadi",
-          "akurasi_kelengkapan_data_pribadi"
-        ) || "N/A",
-      "Penyimpanan Data Pribadi":
-        getFieldValue(result, "penyimpanan_data_pribadi", "penyimpanan_data") ||
-        "N/A",
-      "Metode Pemrosesan Data Pribadi":
-        getFieldValue(
-          result,
-          "metode_pemrosesan_data_pribadi",
-          "metode_pemrosesan"
-        ) || "N/A",
-      "Pengambilan Keputusan Terotomasi":
-        result.pengambilan_keputusan_terotomati || "N/A",
-      "Dasar Pemrosesan": result.dasar_pemrosesan || "N/A",
-      "Masa Retensi Data Pribadi":
-        getFieldValue(result, "masa_retensi_data_pribadi", "masa_retensi") ||
-        "N/A",
-      "Kewajiban Hukum untuk menyimpan Data Pribadi":
-        getFieldValue(
-          result,
-          "kewajiban_hukum_untuk_menyimpan_data_pribadi",
-          "kewajiban_hukum_retensi"
-        ) || "N/A",
+        result.kebijakan_rujukan.value || "N/A",
+      "Bentuk Data Pribadi": result.bentuk_data_pribadi.value || "N/A",
+      "Subjek Data Pribadi": result.subjek_data_pribadi.value || "N/A",
+      "Jenis Data Pribadi": result.jenis_data_pribadi.value || "N/A",
+      "Data Pribadi Spesifik": result.data_pribadi_spesifik.value || "N/A",
+      "Sumber Pemerolehan Data Pribadi": result.sumber_data.value || "N/A",
+      "Penyimpanan Data Pribadi": result.penyimpanan_data.value || "N/A",
+      "Metode Pemrosesan Data Pribadi": result.metode_pemrosesan.value || "N/A",
+      "Dasar Pemrosesan": result.dasar_pemrosesan.value || "N/A",
+      "Masa Retensi": result.masa_retensi.value || "N/A",
       "Langkah Teknis Pengamanan Data Pribadi":
-        getFieldValue(
-          result,
-          "langkah_teknis_pengamanan_data_pribadi",
-          "langkah_teknis_pengamanan"
-        ) || "N/A",
+        result.langkah_teknis_pengamanan.value || "N/A",
       "Langkah Organisasi Pengamanan Data Pribadi":
-        getFieldValue(
-          result,
-          "langkah_organisasi_pengamanan_data_pribadi",
-          "langkah_organisasi_pengamanan"
-        ) || "N/A",
+        result.langkah_organisasi_pengamanan.value || "N/A",
       "Kategori dan Jenis Penerima Data Pribadi":
-        getFieldValue(
-          result,
-          "kategori_dan_jenis_penerima_data_pribadi",
-          "kategori_penerima"
-        ) || "N/A",
-      "Profil Penerima Data Pribadi":
-        getFieldValue(
-          result,
-          "profil_penerima_data_pribadi",
-          "profil_penerima"
-        ) || "N/A",
-      "Tujuan Pengiriman / Akses Data Pribadi":
-        result.tujuan_pengiriman_akses_data_pribadi || "N/A",
-      "Mekanisme Transfer / Akses": result.mekanisme_transfer_akses || "N/A",
-      "Hak Subjek Data Pribadi yang Berlaku":
-        getFieldValue(
-          result,
-          "hak_subjek_data_pribadi_yang_berlaku",
-          "hak_subjek_data_pribadi"
-        ) || "N/A",
-      "Asesmen Risiko": result.asesmen_risiko || "N/A",
-      "Proses / Kegiatan Sebelumnya":
-        getFieldValue(
-          result,
-          "proses_kegiatan_sebelumnya",
-          "proses_sebelumnya"
-        ) || "N/A",
-      "Proses / Kegiatan Setelahnya":
-        getFieldValue(
-          result,
-          "proses_kegiatan_setelahnya",
-          "proses_setelahnya"
-        ) || "N/A",
+        result.kategori_penerima.value || "N/A",
+      "Profil Penerima Data Pribadi": result.profil_penerima.value || "N/A",
+      "Asesmen Risiko": result.asesmen_risiko.value || "N/A",
+      "Proses / Kegiatan Sebelumnya": result.proses_sebelumnya.value || "N/A",
+      "Proses / Kegiatan Setelahnya": result.proses_setelahnya.value || "N/A",
       "Keterangan / Catatan Tambahan":
-        getFieldValue(
-          result,
-          "keterangan_catatan_tambahan",
-          "keterangan_tambahan"
-        ) || "N/A",
+        result.keterangan_tambahan.value || "N/A",
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -284,6 +231,7 @@ export default function RopaAnalyzerPage() {
     XLSX.writeFile(workbook, "Hasil_Analisis_Multi-File.xlsx");
   };
 
+  // handler chat ato brainstorming
   const handleChatSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!chatInput.trim() || results.length === 0) return;
@@ -296,17 +244,35 @@ export default function RopaAnalyzerPage() {
       const response = await fetch("/api/brainstorming", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          question: chatInput,
-          context: results,
-        }),
+        body: JSON.stringify({ question: chatInput, context: results }),
       });
 
       if (!response.ok) throw new Error("Gagal mendapatkan respons dari AI.");
 
-      const result = await response.json();
-      const aiMessage: ChatMessage = { sender: "ai", text: result.answer };
+      const res = await response.json();
+      const aiMessage: ChatMessage = { sender: "ai", text: res.answer };
       setChatHistory((prev) => [...prev, aiMessage]);
+
+      //  update data tabel dari chat
+      if (res.updatedData && Array.isArray(res.updatedData)) {
+        const newResults = [...results];
+        res.updatedData.forEach(
+          (update: { fileName: string; field: string; value: string }) => {
+            const resultIndex = newResults.findIndex(
+              (r) => r.fileName === update.fileName
+            );
+            if (resultIndex !== -1) {
+              const fieldName = update.field as keyof RopaData;
+              const targetCell = newResults[resultIndex][fieldName] as RopaCell;
+              if (targetCell) {
+                targetCell.value = update.value;
+                targetCell.source = "ai"; // Tandai sebagai editan 'ai'
+              }
+            }
+          }
+        );
+        setResults(newResults);
+      }
     } catch (err: any) {
       const errorMessage: ChatMessage = {
         sender: "ai",
@@ -315,6 +281,34 @@ export default function RopaAnalyzerPage() {
       setChatHistory((prev) => [...prev, errorMessage]);
     }
   };
+
+  const tableFields: (keyof Omit<RopaData, "saran_ai">)[] = [
+    "no_aktivitas",
+    "nama_aktivitas",
+    "unit_kerja",
+    "departemen",
+    "penanggung_jawab",
+    "kedudukan_pemilik_proses",
+    "tujuan_pemrosesan",
+    "kebijakan_rujukan",
+    "bentuk_data_pribadi",
+    "subjek_data_pribadi",
+    "jenis_data_pribadi",
+    "data_pribadi_spesifik",
+    "sumber_data",
+    "penyimpanan_data",
+    "metode_pemrosesan",
+    "dasar_pemrosesan",
+    "masa_retensi",
+    "langkah_teknis_pengamanan",
+    "langkah_organisasi_pengamanan",
+    "kategori_penerima",
+    "profil_penerima",
+    "asesmen_risiko",
+    "proses_sebelumnya",
+    "proses_setelahnya",
+    "keterangan_tambahan",
+  ];
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4 font-sans">
@@ -355,7 +349,6 @@ export default function RopaAnalyzerPage() {
                 : "Klik atau seret file ke sini"}
             </p>
           </div>
-
           <button
             type="submit"
             disabled={isLoading || files.length === 0}
@@ -375,256 +368,101 @@ export default function RopaAnalyzerPage() {
 
         {results.length > 0 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-semibold text-center text-gray-700">
-              Hasil Analisis
-            </h2>
-
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-semibold text-gray-700">
+                Hasil Analisis
+              </h2>
+              <button
+                onClick={() => setIsEditMode(!isEditMode)}
+                className={`px-6 py-2 font-semibold rounded-lg text-white transition-colors ${
+                  isEditMode
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-blue-600 hover:bg-blue-700"
+                }`}
+              >
+                {isEditMode ? "Simpan Perubahan" : "Ubah Data"}
+              </button>
+            </div>
             <div className="overflow-x-auto border border-gray-200 rounded-lg">
               <table className="min-w-full bg-white text-sm">
                 <thead className="bg-gray-100">
                   <tr>
-                    {[
-                      "File Asal",
-                      "No Aktivitas",
-                      "Nama Aktivitas",
-                      "Unit Kerja / Divisi",
-                      "Departemen / Sub-Departemen",
-                      "Penanggung Jawab Proses",
-                      "Kedudukan Pemilik Proses",
-                      "Deskripsi dan Tujuan Pemrosesan",
-                      "Kebijakan/SOP/IK/Dokumen Rujukan",
-                      "Bentuk Data Pribadi",
-                      "Subjek Data Pribadi",
-                      "Jenis Data Pribadi",
-                      "Data Pribadi Spesifik",
-                      "Sumber Pemerolehan Data Pribadi",
-                      "Akurasi dan Kelengkapan Data Pribadi",
-                      "Penyimpanan Data Pribadi",
-                      "Metode Pemrosesan Data Pribadi",
-                      "Pengambilan Keputusan Terotomati",
-                      "Dasar Pemrosesan",
-                      "Masa Retensi Data Pribadi",
-                      "Kewajiban Hukum untuk menyimpan Data Pribadi",
-                      "Langkah Teknis Pengamanan",
-                      "Langkah Organisasi Pengamanan",
-                      "Kategori dan Jenis Penerima",
-                      "Profil Penerima",
-                      "Tujuan Pengiriman / Akses Data Pribadi",
-                      "Mekanisme Transfer / Akses",
-                      "Hak Subjek Data Pribadi yang Berlaku",
-                      "Asesmen Risiko",
-                      "Proses / Kegiatan Sebelumnya",
-                      "Proses / Kegiatan Setelahnya",
-                      "Keterangan / Catatan Tambahan",
-                    ].map((header) => (
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                      File Asal
+                    </th>
+                    {tableFields.map((field) => (
                       <th
-                        key={header}
+                        key={field}
                         className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider whitespace-nowrap"
                       >
-                        {header}
+                        {field
+                          .replace(/_/g, " ")
+                          .replace(/\b\w/g, (l) => l.toUpperCase())}
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {results.map((result, index) => (
-                    <tr key={index}>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-800 font-bold">
-                        {result.fileName}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {result.no_aktivitas || (
-                          <span className="text-red-500 italic">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {result.nama_aktivitas || (
-                          <span className="text-red-500 italic">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {result.unit_kerja || (
-                          <span className="text-red-500 italic">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {result.departemen || (
-                          <span className="text-red-500 italic">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {result.penanggung_jawab || (
-                          <span className="text-red-500 italic">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {result.kedudukan_pemilik_proses || (
-                          <span className="text-red-500 italic">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 whitespace-normal text-gray-700 min-w-[300px]">
-                        {getFieldValue(
-                          result,
-                          "deskripsi_dan_tujuan_pemrosesan",
-                          "deskripsi_tujuan_pemrosesan"
-                        ) || <span className="text-red-500 italic">N/A</span>}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {getFieldValue(
-                          result,
-                          "kebijakan_sop_ik_dokumen_rujukan",
-                          "kebijakan_rujukan"
-                        ) || <span className="text-red-500 italic">N/A</span>}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {result.bentuk_data_pribadi || (
-                          <span className="text-red-500 italic">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {result.subjek_data_pribadi || (
-                          <span className="text-red-500 italic">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 whitespace-normal text-gray-700 min-w-[300px]">
-                        {result.jenis_data_pribadi || (
-                          <span className="text-red-500 italic">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {result.data_pribadi_spesifik || (
-                          <span className="text-red-500 italic">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {getFieldValue(
-                          result,
-                          "sumber_pemerolehan_data_pribadi",
-                          "sumber_data"
-                        ) || <span className="text-red-500 italic">N/A</span>}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {getFieldValue(
-                          result,
-                          "akurasi_dan_kelengkapan_data_pribadi",
-                          "akurasi_kelengkapan_data_pribadi"
-                        ) || <span className="text-red-500 italic">N/A</span>}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {getFieldValue(
-                          result,
-                          "penyimpanan_data_pribadi",
-                          "penyimpanan_data"
-                        ) || <span className="text-red-500 italic">N/A</span>}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {getFieldValue(
-                          result,
-                          "metode_pemrosesan_data_pribadi",
-                          "metode_pemrosesan"
-                        ) || <span className="text-red-500 italic">N/A</span>}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {result.pengambilan_keputusan_terotomati || (
-                          <span className="text-red-500 italic">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {result.dasar_pemrosesan || (
-                          <span className="text-red-500 italic">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {getFieldValue(
-                          result,
-                          "masa_retensi_data_pribadi",
-                          "masa_retensi"
-                        ) || <span className="text-red-500 italic">N/A</span>}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {getFieldValue(
-                          result,
-                          "kewajiban_hukum_untuk_menyimpan_data_pribadi",
-                          "kewajiban_hukum_retensi"
-                        ) || <span className="text-red-500 italic">N/A</span>}
-                      </td>
-                      <td className="px-4 py-4 whitespace-normal text-gray-700 min-w-[300px]">
-                        {getFieldValue(
-                          result,
-                          "langkah_teknis_pengamanan_data_pribadi",
-                          "langkah_teknis_pengamanan"
-                        ) || <span className="text-red-500 italic">N/A</span>}
-                      </td>
-                      <td className="px-4 py-4 whitespace-normal text-gray-700 min-w-[300px]">
-                        {getFieldValue(
-                          result,
-                          "langkah_organisasi_pengamanan_data_pribadi",
-                          "langkah_organisasi_pengamanan"
-                        ) || <span className="text-red-500 italic">N/A</span>}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {getFieldValue(
-                          result,
-                          "kategori_dan_jenis_penerima_data_pribadi",
-                          "kategori_penerima"
-                        ) || <span className="text-red-500 italic">N/A</span>}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {getFieldValue(
-                          result,
-                          "profil_penerima_data_pribadi",
-                          "profil_penerima"
-                        ) || <span className="text-red-500 italic">N/A</span>}
-                      </td>
-                      <td className="px-4 py-4 whitespace-normal text-gray-700 min-w-[300px]">
-                        {result.tujuan_pengiriman_akses_data_pribadi || (
-                          <span className="text-red-500 italic">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {result.mekanisme_transfer_akses || (
-                          <span className="text-red-500 italic">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 whitespace-normal text-gray-700 min-w-[300px]">
-                        {getFieldValue(
-                          result,
-                          "hak_subjek_data_pribadi_yang_berlaku",
-                          "hak_subjek_data_pribadi"
-                        ) || <span className="text-red-500 italic">N/A</span>}
-                      </td>
-                      <td className="px-4 py-4 whitespace-normal text-gray-700 min-w-[300px]">
-                        {result.asesmen_risiko || (
-                          <span className="text-red-500 italic">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {getFieldValue(
-                          result,
-                          "proses_kegiatan_sebelumnya",
-                          "proses_sebelumnya"
-                        ) || <span className="text-red-500 italic">N/A</span>}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                        {getFieldValue(
-                          result,
-                          "proses_kegiatan_setelahnya",
-                          "proses_setelahnya"
-                        ) || <span className="text-red-500 italic">N/A</span>}
-                      </td>
-                      <td className="px-4 py-4 whitespace-normal text-gray-700 min-w-[300px]">
-                        {getFieldValue(
-                          result,
-                          "keterangan_catatan_tambahan",
-                          "keterangan_tambahan"
-                        ) || <span className="text-red-500 italic">N/A</span>}
-                      </td>
+                  {results.map((result, resultIndex) => (
+                    <tr key={resultIndex}>
+                      <td className="px-4 py-2 ...">{result.fileName}</td>
+                      {tableFields.map((fieldName) => {
+                        const cell = result[fieldName];
+                        if (!cell)
+                          return (
+                            <td key={fieldName} className="p-4 bg-red-100">
+                              Error
+                            </td>
+                          );
+
+                        // LANGKAH 3: Penanda visual baru
+                        const bgColor =
+                          cell.source === "manual"
+                            ? "bg-green-50"
+                            : cell.source === "ai"
+                            ? "bg-blue-50"
+                            : "bg-transparent";
+                        const ringColor =
+                          cell.source === "manual"
+                            ? "focus:ring-green-500"
+                            : cell.source === "ai"
+                            ? "focus:ring-blue-500"
+                            : "focus:ring-gray-500";
+
+                        return (
+                          <td key={fieldName} className="p-0">
+                            {isEditMode ? (
+                              <input
+                                type="text"
+                                value={cell.value || ""}
+                                onChange={(e) =>
+                                  handleManualEdit(
+                                    resultIndex,
+                                    fieldName,
+                                    e.target.value
+                                  )
+                                }
+                                className={`w-full h-full p-4 border-none outline-none focus:ring-2 ${ringColor} transition-colors text-gray-700 ${bgColor}`}
+                              />
+                            ) : (
+                              <div
+                                className={`px-4 py-4 w-full h-full ${bgColor}`}
+                              >
+                                {cell.value || (
+                                  <span className="text-red-500 italic">
+                                    N/A
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                        );
+                      })}
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-
             <div className="space-y-4">
               {results.map((result, index) =>
                 result.saran_ai ? (
@@ -640,7 +478,6 @@ export default function RopaAnalyzerPage() {
                   </div>
                 ) : null
               )}
-
               <div className="text-center">
                 <button
                   onClick={handleDownloadExcel}
@@ -652,7 +489,6 @@ export default function RopaAnalyzerPage() {
             </div>
           </div>
         )}
-
         {results.length > 0 && (
           <div className="pt-6 border-t">
             <h3 className="text-xl font-semibold text-center text-gray-700 mb-4">
