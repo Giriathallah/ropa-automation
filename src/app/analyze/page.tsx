@@ -486,10 +486,10 @@ export default function RopaAnalyzerPage() {
         <div
           className={`${
             sidebarOpen ? (sidebarCollapsed ? "w-16" : "w-80") : "w-0"
-          } bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 flex flex-col overflow-hidden`}
+          } bg-white dark:bg-gray-800 border-r border-border dark:border-gray-700 transition-all duration-300 flex flex-col overflow-hidden`}
         >
           {/* Sidebar Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between p-4 border-b border-border dark:border-gray-700">
             {!sidebarCollapsed && (
               <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
                 RoPA Sessions
@@ -513,7 +513,7 @@ export default function RopaAnalyzerPage() {
           <div className="p-4">
             <button
               onClick={createNewSession}
-              className={`w-full flex items-center gap-3 p-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors ${
+              className={`w-full flex items-center gap-3 p-3 rounded-lg bg-primary hover:bg-blue-700 text-primary-foreground transition-colors ${
                 sidebarCollapsed ? "justify-center" : ""
               }`}
             >
@@ -558,7 +558,7 @@ export default function RopaAnalyzerPage() {
           </div>
 
           {/* Sidebar Footer */}
-          <div className="border-t border-gray-200 dark:border-gray-700 p-4 space-y-2">
+          <div className="border-t border-border dark:border-gray-700 p-4 space-y-2">
             <button
               onClick={toggleTheme}
               className={`w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors ${
@@ -576,7 +576,7 @@ export default function RopaAnalyzerPage() {
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Header */}
-          <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
+          <header className="bg-white dark:bg-gray-800 border-b border-border dark:border-gray-700 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <button
@@ -601,7 +601,7 @@ export default function RopaAnalyzerPage() {
           <div className="flex-1 overflow-auto">
             <div className="max-w-7xl mx-auto p-6 space-y-8">
               {/* File Upload Section */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-border dark:border-gray-700 p-6">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div
                     className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all ${
@@ -648,7 +648,7 @@ export default function RopaAnalyzerPage() {
                   <button
                     type="submit"
                     disabled={isLoading || files.length === 0}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-primary-foreground font-semibold rounded-lg transition-colors"
                   >
                     <FileText size={16} />
                     {isLoading
@@ -666,7 +666,7 @@ export default function RopaAnalyzerPage() {
 
               {/* Results Section */}
               {results.length > 0 && (
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-border dark:border-gray-700 p-6 space-y-6">
                   <div className="flex justify-between items-center">
                     <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
                       Analysis Results
@@ -674,10 +674,10 @@ export default function RopaAnalyzerPage() {
                     <div className="flex gap-3">
                       <button
                         onClick={() => setIsEditMode(!isEditMode)}
-                        className={`flex items-center gap-2 px-4 py-2 font-semibold rounded-lg text-white transition-colors ${
+                        className={`flex items-center gap-2 px-4 py-2 font-semibold rounded-lg text-primary-foreground transition-colors ${
                           isEditMode
                             ? "bg-green-600 hover:bg-green-700"
-                            : "bg-blue-600 hover:bg-blue-700"
+                            : "bg-primary hover:bg-blue-700"
                         }`}
                       >
                         {isEditMode ? <Save size={16} /> : <Edit3 size={16} />}
@@ -685,7 +685,7 @@ export default function RopaAnalyzerPage() {
                       </button>
                       <button
                         onClick={handleDownloadExcel}
-                        className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white font-semibold rounded-lg transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-primary-foreground font-semibold rounded-lg transition-colors"
                       >
                         <Download size={16} />
                         Export Excel
@@ -694,16 +694,16 @@ export default function RopaAnalyzerPage() {
                   </div>
 
                   <div className="overflow-x-auto">
-                    <table className="min-w-full bg-white dark:bg-gray-800 text-sm border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <table className="min-w-full bg-white dark:bg-gray-800 text-sm border border-border dark:border-gray-700 rounded-lg">
                       <thead className="bg-gray-50 dark:bg-gray-700">
                         <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider border-r border-gray-200 dark:border-gray-600">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider border-r border-border dark:border-gray-600">
                             Source File
                           </th>
                           {tableFields.map((field) => (
                             <th
                               key={field}
-                              className="px-4 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider border-r border-gray-200 dark:border-gray-600 last:border-r-0"
+                              className="px-4 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider border-r border-border dark:border-gray-600 last:border-r-0"
                             >
                               {formatFieldName(field)}
                             </th>
@@ -716,7 +716,7 @@ export default function RopaAnalyzerPage() {
                             key={resultIndex}
                             className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                           >
-                            <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-gray-600">
+                            <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100 border-r border-border dark:border-gray-600">
                               <div className="flex items-center gap-2">
                                 <FileText size={14} className="text-gray-500" />
                                 <span className="truncate max-w-32">
@@ -730,7 +730,7 @@ export default function RopaAnalyzerPage() {
                                 return (
                                   <td
                                     key={fieldName}
-                                    className="p-4 bg-red-50 dark:bg-red-900/20 border-r border-gray-200 dark:border-gray-600 last:border-r-0"
+                                    className="p-4 bg-red-50 dark:bg-red-900/20 border-r border-border dark:border-gray-600 last:border-r-0"
                                   >
                                     <span className="text-red-500">Error</span>
                                   </td>
@@ -738,9 +738,9 @@ export default function RopaAnalyzerPage() {
 
                               const bgColor =
                                 cell.source === "manual"
-                                  ? "bg-green-50 dark:bg-green-900/20"
+                                  ? "bg-edit-manual-bg dark:bg-green-900/20"
                                   : cell.source === "ai"
-                                  ? "bg-blue-50 dark:bg-blue-900/20"
+                                  ? "bg-edit-ai-bg dark:bg-blue-900/20"
                                   : "bg-transparent";
 
                               const ringColor =
@@ -753,7 +753,7 @@ export default function RopaAnalyzerPage() {
                               return (
                                 <td
                                   key={fieldName}
-                                  className="p-0 border-r border-gray-200 dark:border-gray-600 last:border-r-0"
+                                  className="p-0 border-r border-border dark:border-gray-600 last:border-r-0"
                                 >
                                   {isEditMode ? (
                                     <input
@@ -814,7 +814,7 @@ export default function RopaAnalyzerPage() {
 
               {/* Chat Section */}
               {results.length > 0 && (
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-border dark:border-gray-700 p-6">
                   <div className="flex items-center gap-2 mb-6">
                     <MessageCircle
                       className="text-blue-600 dark:text-blue-400"
@@ -826,7 +826,7 @@ export default function RopaAnalyzerPage() {
                   </div>
 
                   {/* Chat Messages */}
-                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 h-80 overflow-y-auto p-4 mb-4 space-y-4">
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg border border-border dark:border-gray-700 h-80 overflow-y-auto p-4 mb-4 space-y-4">
                     {chatHistory.length === 0 ? (
                       <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
                         <div className="text-center">
@@ -850,8 +850,8 @@ export default function RopaAnalyzerPage() {
                           <div
                             className={`max-w-xs lg:max-w-md px-4 py-3 rounded-lg ${
                               msg.sender === "user"
-                                ? "bg-blue-600 text-white"
-                                : "bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-border dark:border-gray-600"
                             }`}
                           >
                             <p className="text-sm whitespace-pre-wrap">
@@ -889,7 +889,7 @@ export default function RopaAnalyzerPage() {
                     <button
                       type="submit"
                       disabled={!chatInput.trim() || results.length === 0}
-                      className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors flex items-center gap-2"
+                      className="px-6 py-3 bg-primary hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-primary-foreground font-semibold rounded-lg transition-colors flex items-center gap-2"
                     >
                       <Send size={16} />
                       Send
@@ -900,7 +900,7 @@ export default function RopaAnalyzerPage() {
 
               {/* Legend */}
               {results.length > 0 && (
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-border dark:border-gray-700 p-4">
                   <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                     Data Source Legend:
                   </h4>
