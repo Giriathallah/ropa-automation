@@ -37,30 +37,42 @@ interface RopaCell {
 
 interface RopaData {
   no_aktivitas: RopaCell;
-  nama_aktivitas: RopaCell;
-  unit_kerja: RopaCell;
-  departemen: RopaCell;
-  penanggung_jawab: RopaCell;
+  unit_kerja_divisi: RopaCell;
+  departemen_sub_departemen: RopaCell;
+  penanggungjawab_proses: RopaCell;
   kedudukan_pemilik_proses: RopaCell;
-  tujuan_pemrosesan: RopaCell;
-  kebijakan_rujukan: RopaCell;
+  nama_aktivitas: RopaCell;
+  deskripsi_dan_tujuan_pemrosesan: RopaCell;
+  kebijakan_sop_ik_dokumen_rujukan: RopaCell;
   bentuk_data_pribadi: RopaCell;
   subjek_data_pribadi: RopaCell;
   jenis_data_pribadi: RopaCell;
-  data_pribadi_spesifik: RopaCell;
-  sumber_data: RopaCell;
-  penyimpanan_data: RopaCell;
-  metode_pemrosesan: RopaCell;
+  data_pribadi_spesifik_ya_tidak: RopaCell;
+  sumber_pemerolehan_data_pribadi: RopaCell;
+  akurasi_dan_kelengkapan_data_pribadi: RopaCell;
+  penyimpanan_data_pribadi: RopaCell;
+  metode_pemrosesan_data_pribadi: RopaCell;
+  pengambilan_keputusan_terotomasi: RopaCell;
   dasar_pemrosesan: RopaCell;
-  masa_retensi: RopaCell;
-  langkah_teknis_pengamanan: RopaCell;
-  langkah_organisasi_pengamanan: RopaCell;
-  kategori_penerima: RopaCell;
-  profil_penerima: RopaCell;
+  masa_retensi_data_pribadi: RopaCell;
+  kewajiban_hukum_untuk_menyimpan_data_pribadi: RopaCell;
+  langkah_teknis_pengamanan_data_pribadi: RopaCell;
+  langkah_organisasi_pengamanan_data_pribadi: RopaCell;
+  kategori_dan_jenis_penerima_data_pribadi: RopaCell;
+  profil_penerima_data_pribadi: RopaCell;
+  pengendali_prosesor_pengendali_bersama: RopaCell;
+  kontak_pengendali_prosesor: RopaCell;
+  tujuan_pengiriman_pemrosesan_berbagi_akses: RopaCell;
+  jenis_data_pribadi_yang_dikirim: RopaCell;
+  perjanjian_kontraktual_dengan_penerima_data_pribadi: RopaCell;
+  negara_lain_sebagai_penerima_transfer_data_pribadi: RopaCell;
+  bentuk_dokumen_pengiriman: RopaCell;
+  mekanisme_transfer: RopaCell;
+  hak_subjek_data_pribadi_yang_berlaku: RopaCell;
   asesmen_risiko: RopaCell;
-  proses_sebelumnya: RopaCell;
-  proses_setelahnya: RopaCell;
-  keterangan_tambahan: RopaCell;
+  proses_kegiatan_sebelumnya: RopaCell;
+  proses_kegiatan_setelahnya: RopaCell;
+  keterangan_catatan_tambahan: RopaCell;
   saran_ai: string;
 }
 
@@ -87,30 +99,42 @@ const transformApiDataToState = (data: any): RopaData => {
   const transformed: Partial<RopaData> = {};
   const allKeys: (keyof Omit<RopaData, "saran_ai">)[] = [
     "no_aktivitas",
-    "nama_aktivitas",
-    "unit_kerja",
-    "departemen",
-    "penanggung_jawab",
+    "unit_kerja_divisi",
+    "departemen_sub_departemen",
+    "penanggungjawab_proses",
     "kedudukan_pemilik_proses",
-    "tujuan_pemrosesan",
-    "kebijakan_rujukan",
+    "nama_aktivitas",
+    "deskripsi_dan_tujuan_pemrosesan",
+    "kebijakan_sop_ik_dokumen_rujukan",
     "bentuk_data_pribadi",
     "subjek_data_pribadi",
     "jenis_data_pribadi",
-    "data_pribadi_spesifik",
-    "sumber_data",
-    "penyimpanan_data",
-    "metode_pemrosesan",
+    "data_pribadi_spesifik_ya_tidak",
+    "sumber_pemerolehan_data_pribadi",
+    "akurasi_dan_kelengkapan_data_pribadi",
+    "penyimpanan_data_pribadi",
+    "metode_pemrosesan_data_pribadi",
+    "pengambilan_keputusan_terotomasi",
     "dasar_pemrosesan",
-    "masa_retensi",
-    "langkah_teknis_pengamanan",
-    "langkah_organisasi_pengamanan",
-    "kategori_penerima",
-    "profil_penerima",
+    "masa_retensi_data_pribadi",
+    "kewajiban_hukum_untuk_menyimpan_data_pribadi",
+    "langkah_teknis_pengamanan_data_pribadi",
+    "langkah_organisasi_pengamanan_data_pribadi",
+    "kategori_dan_jenis_penerima_data_pribadi",
+    "profil_penerima_data_pribadi",
+    "pengendali_prosesor_pengendali_bersama",
+    "kontak_pengendali_prosesor",
+    "tujuan_pengiriman_pemrosesan_berbagi_akses",
+    "jenis_data_pribadi_yang_dikirim",
+    "perjanjian_kontraktual_dengan_penerima_data_pribadi",
+    "negara_lain_sebagai_penerima_transfer_data_pribadi",
+    "bentuk_dokumen_pengiriman",
+    "mekanisme_transfer",
+    "hak_subjek_data_pribadi_yang_berlaku",
     "asesmen_risiko",
-    "proses_sebelumnya",
-    "proses_setelahnya",
-    "keterangan_tambahan",
+    "proses_kegiatan_sebelumnya",
+    "proses_kegiatan_setelahnya",
+    "keterangan_catatan_tambahan",
   ];
 
   allKeys.forEach((key) => {
@@ -330,49 +354,66 @@ export default function RopaAnalyzerPage() {
       }
     }
   };
-
+  const tableFields: (keyof Omit<RopaData, "saran_ai">)[] = [
+    "no_aktivitas",
+    "unit_kerja_divisi",
+    "departemen_sub_departemen",
+    "penanggungjawab_proses",
+    "kedudukan_pemilik_proses",
+    "nama_aktivitas",
+    "deskripsi_dan_tujuan_pemrosesan",
+    "kebijakan_sop_ik_dokumen_rujukan",
+    "bentuk_data_pribadi",
+    "subjek_data_pribadi",
+    "jenis_data_pribadi",
+    "data_pribadi_spesifik_ya_tidak",
+    "sumber_pemerolehan_data_pribadi",
+    "akurasi_dan_kelengkapan_data_pribadi",
+    "penyimpanan_data_pribadi",
+    "metode_pemrosesan_data_pribadi",
+    "pengambilan_keputusan_terotomasi",
+    "dasar_pemrosesan",
+    "masa_retensi_data_pribadi",
+    "kewajiban_hukum_untuk_menyimpan_data_pribadi",
+    "langkah_teknis_pengamanan_data_pribadi",
+    "langkah_organisasi_pengamanan_data_pribadi",
+    "kategori_dan_jenis_penerima_data_pribadi",
+    "profil_penerima_data_pribadi",
+    "pengendali_prosesor_pengendali_bersama",
+    "kontak_pengendali_prosesor",
+    "tujuan_pengiriman_pemrosesan_berbagi_akses",
+    "jenis_data_pribadi_yang_dikirim",
+    "perjanjian_kontraktual_dengan_penerima_data_pribadi",
+    "negara_lain_sebagai_penerima_transfer_data_pribadi",
+    "bentuk_dokumen_pengiriman",
+    "mekanisme_transfer",
+    "hak_subjek_data_pribadi_yang_berlaku",
+    "asesmen_risiko",
+    "proses_kegiatan_sebelumnya",
+    "proses_kegiatan_setelahnya",
+    "keterangan_catatan_tambahan",
+  ];
   const handleDownloadExcel = () => {
     if (results.length === 0) return;
 
-    const dataToExport = results.map((result) => ({
-      "File Asal": result.fileName,
-      "No Aktivitas": result.no_aktivitas.value || "N/A",
-      "Nama Aktivitas": result.nama_aktivitas.value || "N/A",
-      "Unit Kerja / Divisi": result.unit_kerja.value || "N/A",
-      "Departemen / Sub-Departemen": result.departemen.value || "N/A",
-      "Penanggung Jawab Proses": result.penanggung_jawab.value || "N/A",
-      "Kedudukan Pemilik Proses":
-        result.kedudukan_pemilik_proses.value || "N/A",
-      "Tujuan Pemrosesan": result.tujuan_pemrosesan.value || "N/A",
-      "Kebijakan/SOP/IK/Dokumen Rujukan":
-        result.kebijakan_rujukan.value || "N/A",
-      "Bentuk Data Pribadi": result.bentuk_data_pribadi.value || "N/A",
-      "Subjek Data Pribadi": result.subjek_data_pribadi.value || "N/A",
-      "Jenis Data Pribadi": result.jenis_data_pribadi.value || "N/A",
-      "Data Pribadi Spesifik": result.data_pribadi_spesifik.value || "N/A",
-      "Sumber Pemerolehan Data Pribadi": result.sumber_data.value || "N/A",
-      "Penyimpanan Data Pribadi": result.penyimpanan_data.value || "N/A",
-      "Metode Pemrosesan Data Pribadi": result.metode_pemrosesan.value || "N/A",
-      "Dasar Pemrosesan": result.dasar_pemrosesan.value || "N/A",
-      "Masa Retensi": result.masa_retensi.value || "N/A",
-      "Langkah Teknis Pengamanan Data Pribadi":
-        result.langkah_teknis_pengamanan.value || "N/A",
-      "Langkah Organisasi Pengamanan Data Pribadi":
-        result.langkah_organisasi_pengamanan.value || "N/A",
-      "Kategori dan Jenis Penerima Data Pribadi":
-        result.kategori_penerima.value || "N/A",
-      "Profil Penerima Data Pribadi": result.profil_penerima.value || "N/A",
-      "Asesmen Risiko": result.asesmen_risiko.value || "N/A",
-      "Proses / Kegiatan Sebelumnya": result.proses_sebelumnya.value || "N/A",
-      "Proses / Kegiatan Setelahnya": result.proses_setelahnya.value || "N/A",
-      "Keterangan / Catatan Tambahan":
-        result.keterangan_tambahan.value || "N/A",
-    }));
+    const dataToExport = results.map((result) => {
+      const exportRow: { [key: string]: string } = {
+        "File Asal": result.fileName,
+      };
+
+      // Menggunakan tableFields untuk membuat baris secara dinamis
+      tableFields.forEach((field) => {
+        const header = formatFieldName(field); // Menggunakan helper untuk nama kolom
+        const cell = result[field];
+        exportRow[header] = cell?.value || "N/A";
+      });
+      return exportRow;
+    });
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "RoPA_Data");
-    worksheet["!cols"] = Array(26).fill({ wch: 35 });
+    worksheet["!cols"] = Array(tableFields.length + 1).fill({ wch: 35 });
     XLSX.writeFile(workbook, "Hasil_Analisis_Multi-File.xlsx");
   };
 
@@ -446,34 +487,6 @@ export default function RopaAnalyzerPage() {
       setChatHistory((prev) => [...prev, errorMessage]);
     }
   };
-
-  const tableFields: (keyof Omit<RopaData, "saran_ai">)[] = [
-    "no_aktivitas",
-    "nama_aktivitas",
-    "unit_kerja",
-    "departemen",
-    "penanggung_jawab",
-    "kedudukan_pemilik_proses",
-    "tujuan_pemrosesan",
-    "kebijakan_rujukan",
-    "bentuk_data_pribadi",
-    "subjek_data_pribadi",
-    "jenis_data_pribadi",
-    "data_pribadi_spesifik",
-    "sumber_data",
-    "penyimpanan_data",
-    "metode_pemrosesan",
-    "dasar_pemrosesan",
-    "masa_retensi",
-    "langkah_teknis_pengamanan",
-    "langkah_organisasi_pengamanan",
-    "kategori_penerima",
-    "profil_penerima",
-    "asesmen_risiko",
-    "proses_sebelumnya",
-    "proses_setelahnya",
-    "keterangan_tambahan",
-  ];
 
   const formatFieldName = (field: string) => {
     return field.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
